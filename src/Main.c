@@ -34,11 +34,11 @@ float Sphere_Gravity(Sphere* s,vec3d p){
 	float r = vec3d_Length(dir);
 	return G * s->m / (r * r);
 }
-void Sphere_AddGravity(Sphere* s,Sphere* other,float w->ElapsedTime){
+void Sphere_AddGravity(Sphere* s,Sphere* other,float ElapsedTime){
 	float f = Sphere_Gravity(other,s->p);
 	vec3d a = vec3d_Mul(vec3d_Normalise(vec3d_Sub(other->p,s->p)),f);
 	
-	s->a = vec3d_Add(s->a,vec3d_Mul(a,w->ElapsedTime));
+	s->a = vec3d_Add(s->a,vec3d_Mul(a,ElapsedTime));
 }
 char Sphere_isCollision(Sphere* s,Sphere* other){
 	float d = vec3d_Length(vec3d_Sub(other->p,s->p));
@@ -54,9 +54,9 @@ void Sphere_Collision(Sphere* s,Sphere* other){
 		other->p = vec3d_Add(other->p,vec3d_Div(vec3d_Mul(d,Overlap),h));
 	}
 }
-void Sphere_Update(Sphere* s,float w->ElapsedTime){
-	s->v = vec3d_Add(s->v,vec3d_Mul(s->a,w->ElapsedTime));
-	s->p = vec3d_Add(s->p,vec3d_Mul(s->v,w->ElapsedTime));
+void Sphere_Update(Sphere* s,float ElapsedTime){
+	s->v = vec3d_Add(s->v,vec3d_Mul(s->a,ElapsedTime));
+	s->p = vec3d_Add(s->p,vec3d_Mul(s->v,ElapsedTime));
 
 	s->a = vec3d_Null();
 }
@@ -151,7 +151,7 @@ void Setup(AlxWindow* w){
 		vec3d_New(0.0f,0.0f,-17.0f),
 		vec3d_New(0.0f,0.0f,0.0f),
 		1.0f,
-		1000000.0f,
+		1000.0f,
 		GREEN
 	)});
 	Vector_Push(&spheres,(Sphere[]){ Sphere_New(
@@ -159,7 +159,7 @@ void Setup(AlxWindow* w){
 		vec3d_New(17.0f,0.0f,0.0f),
 		vec3d_New(0.0f,0.0f,0.0f),
 		1.0f,
-		1000000.0f,
+		1000.0f,
 		YELLOW
 	)});
 	Vector_Push(&spheres,(Sphere[]){ Sphere_New(
@@ -167,7 +167,7 @@ void Setup(AlxWindow* w){
 		vec3d_New(0.0f,0.0f,17.0f),
 		vec3d_New(0.0f,0.0f,0.0f),
 		1.0f,
-		1000000.0f,
+		1000.0f,
 		LIGHT_BLUE
 	)});
 	Vector_Push(&spheres,(Sphere[]){ Sphere_New(
@@ -175,7 +175,7 @@ void Setup(AlxWindow* w){
 		vec3d_New(-17.0f,0.0f,0.0f),
 		vec3d_New(0.0f,0.0f,0.0f),
 		1.0f,
-		1000000.0f,
+		1000.0f,
 		BLUE
 	)});
 }
