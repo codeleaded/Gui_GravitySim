@@ -11,15 +11,15 @@
 
 
 typedef struct Sphere{
-	vec3d p;
-	vec3d v;
-	vec3d a;
+	Vec3D p;
+	Vec3D v;
+	Vec3D a;
 	float r;
 	float m;
 	Pixel c;
 } Sphere;
 
-Sphere Sphere_New(vec3d p,vec3d v,vec3d a,float r,float m,Pixel c){
+Sphere Sphere_New(Vec3D p,Vec3D v,Vec3D a,float r,float m,Pixel c){
 	Sphere s;
 	s.p = p;
 	s.v = v;
@@ -29,67 +29,67 @@ Sphere Sphere_New(vec3d p,vec3d v,vec3d a,float r,float m,Pixel c){
 	s.c = c;
 	return s;
 }
-float Sphere_Gravity(Sphere* s,vec3d p){
-	vec3d dir = vec3d_Sub(p,s->p);
-	float r = vec3d_Length(dir);
+float Sphere_Gravity(Sphere* s,Vec3D p){
+	Vec3D dir = Vec3D_Sub(p,s->p);
+	float r = Vec3D_Length(dir);
 	return G * s->m / (r * r);
 }
 void Sphere_AddGravity(Sphere* s,Sphere* other,float ElapsedTime){
 	float f = Sphere_Gravity(other,s->p);
-	vec3d a = vec3d_Mul(vec3d_Normalise(vec3d_Sub(other->p,s->p)),f);
+	Vec3D a = Vec3D_Mul(Vec3D_Normalise(Vec3D_Sub(other->p,s->p)),f);
 	
-	s->a = vec3d_Add(s->a,vec3d_Mul(a,ElapsedTime));
+	s->a = Vec3D_Add(s->a,Vec3D_Mul(a,ElapsedTime));
 }
 char Sphere_isCollision(Sphere* s,Sphere* other){
-	float d = vec3d_Length(vec3d_Sub(other->p,s->p));
+	float d = Vec3D_Length(Vec3D_Sub(other->p,s->p));
     return d < (s->r + other->r);
 }
 void Sphere_Collision(Sphere* s,Sphere* other){
 	if(Sphere_isCollision(s,other)){
-		vec3d d = vec3d_Sub(s->p,other->p);
-		float h = vec3d_Length(d);
+		Vec3D d = Vec3D_Sub(s->p,other->p);
+		float h = Vec3D_Length(d);
 		float Overlap = 0.5f * (h - s->r - other->r);
 	
-		s->p = vec3d_Sub(s->p,vec3d_Div(vec3d_Mul(d,Overlap),h));
-		other->p = vec3d_Add(other->p,vec3d_Div(vec3d_Mul(d,Overlap),h));
+		s->p = Vec3D_Sub(s->p,Vec3D_Div(Vec3D_Mul(d,Overlap),h));
+		other->p = Vec3D_Add(other->p,Vec3D_Div(Vec3D_Mul(d,Overlap),h));
 	}
 }
 void Sphere_Update(Sphere* s,float ElapsedTime){
-	s->v = vec3d_Add(s->v,vec3d_Mul(s->a,ElapsedTime));
-	s->p = vec3d_Add(s->p,vec3d_Mul(s->v,ElapsedTime));
+	s->v = Vec3D_Add(s->v,Vec3D_Mul(s->a,ElapsedTime));
+	s->p = Vec3D_Add(s->p,Vec3D_Mul(s->v,ElapsedTime));
 
-	s->a = vec3d_Null();
+	s->a = Vec3D_Null();
 }
 void Sphere_Render(Sphere* s,Vector* tris){
 	for(float i = 0.0f;i<2 * F32_PI;i+=0.2f){
-		mat4x4 matX = Matrix_MakeRotationX(i);
-		mat4x4 matXt = Matrix_MakeRotationX(i+0.2f);
+		M4x4D matX = Matrix_MakeRotationX(i);
+		M4x4D matXt = Matrix_MakeRotationX(i+0.2f);
 
 		for(float j = 0.0f;j<2 * F32_PI;j+=0.2f){
-			mat4x4 matY = Matrix_MakeRotationY(j);
-			mat4x4 matYt = Matrix_MakeRotationY(j+0.2f);
+			M4x4D matY = Matrix_MakeRotationY(j);
+			M4x4D matYt = Matrix_MakeRotationY(j+0.2f);
 
-			mat4x4 mat00 = Matrix_MultiplyMatrix(matX,	matY);
-			mat4x4 mat10 = Matrix_MultiplyMatrix(matXt,	matY);
-			mat4x4 mat01 = Matrix_MultiplyMatrix(matX,	matYt);
-			mat4x4 mat11 = Matrix_MultiplyMatrix(matXt,	matYt);
+			M4x4D mat00 = Matrix_MultiplyMatrix(matX,	matY);
+			M4x4D mat10 = Matrix_MultiplyMatrix(matXt,	matY);
+			M4x4D mat01 = Matrix_MultiplyMatrix(matX,	matYt);
+			M4x4D mat11 = Matrix_MultiplyMatrix(matXt,	matYt);
 			
-			vec3d v00 = Matrix_MultiplyVector(mat00,vec3d_New(0.0f,0.0f,1.0f));
-			vec3d v10 = Matrix_MultiplyVector(mat10,vec3d_New(0.0f,0.0f,1.0f));
-			vec3d v01 = Matrix_MultiplyVector(mat01,vec3d_New(0.0f,0.0f,1.0f));
-			vec3d v11 = Matrix_MultiplyVector(mat11,vec3d_New(0.0f,0.0f,1.0f));
+			Vec3D v00 = Matrix_MultiplyVector(mat00,Vec3D_New(0.0f,0.0f,1.0f));
+			Vec3D v10 = Matrix_MultiplyVector(mat10,Vec3D_New(0.0f,0.0f,1.0f));
+			Vec3D v01 = Matrix_MultiplyVector(mat01,Vec3D_New(0.0f,0.0f,1.0f));
+			Vec3D v11 = Matrix_MultiplyVector(mat11,Vec3D_New(0.0f,0.0f,1.0f));
 
-			triangle t1 = { .p = { v00,v10,v11 }, .c = s->c };
-			triangle_CalcNorm(&t1);
-			triangle_ShadeNorm(&t1,vec3d_New(0.5f,0.6f,0.7f));
-			triangle_Scale(&t1,s->r);
-			triangle_Offset(&t1,s->p);
+			Tri3D t1 = { .p = { v00,v10,v11 }, .c = s->c };
+			Tri3D_CalcNorm(&t1);
+			Tri3D_ShadeNorm(&t1,Vec3D_New(0.5f,0.6f,0.7f));
+			Tri3D_Scale(&t1,s->r);
+			Tri3D_Offset(&t1,s->p);
 
-			triangle t2 = { .p = { v00,v11,v01 }, .c = s->c };
-			triangle_CalcNorm(&t2);
-			triangle_ShadeNorm(&t2,vec3d_New(0.5f,0.6f,0.7f));
-			triangle_Scale(&t2,s->r);
-			triangle_Offset(&t2,s->p);
+			Tri3D t2 = { .p = { v00,v11,v01 }, .c = s->c };
+			Tri3D_CalcNorm(&t2);
+			Tri3D_ShadeNorm(&t2,Vec3D_New(0.5f,0.6f,0.7f));
+			Tri3D_Scale(&t2,s->r);
+			Tri3D_Offset(&t2,s->p);
 
 			Vector_Push(tris,&t1);
 			Vector_Push(tris,&t2);
@@ -123,14 +123,15 @@ void Setup(AlxWindow* w){
 	Menu_Set(1);
 
 	cam = Camera_Make(
-		(vec3d){ 0.0f,5.0f,-25.0f,1.0f },
-		(vec3d){ 0.0f,0.0f,0.0f,1.0f },
-		(vec3d){ 0.0f,0.0f,0.0f,1.0f },
+		(Vec3D){ 0.0f,5.0f,-25.0f,1.0f },
+		(Vec3D){ 0.0f,0.0f,0.0f,1.0f },
+		(Vec3D){ 0.0f,0.0f,0.0f,1.0f },
+		(Vec3D){ 0.0f,0.0f,0.0f,1.0f },
 		90.0f
 	);
 
 	world = World3D_Make(
-		Matrix_MakeWorld((vec3d){ 0.0f,0.0f,0.0f,1.0f },(vec3d){ 0.0f,0.0f,0.0f,1.0f }),
+		Matrix_MakeWorld((Vec3D){ 0.0f,0.0f,0.0f,1.0f },(Vec3D){ 0.0f,0.0f,0.0f,1.0f }),
 		Matrix_MakePerspektive(cam.p,cam.up,cam.a),
 		Matrix_MakeProjection(cam.fov,(float)GetHeight() / (float)GetWidth(),0.1f,1000.0f)
 	);
@@ -139,41 +140,41 @@ void Setup(AlxWindow* w){
 	spheres = Vector_New(sizeof(Sphere));
 
 	Vector_Push(&spheres,(Sphere[]){ Sphere_New(
-		vec3d_New(0.0f,0.0f,0.0f),
-		vec3d_New(0.0f,0.0f,0.0f),
-		vec3d_New(0.0f,0.0f,0.0f),
+		Vec3D_New(0.0f,0.0f,0.0f),
+		Vec3D_New(0.0f,0.0f,0.0f),
+		Vec3D_New(0.0f,0.0f,0.0f),
 		1.0f,
 		1000000.0f,
 		RED
 	)});
 	Vector_Push(&spheres,(Sphere[]){ Sphere_New(
-		vec3d_New(20.0f,0.0f,0.0f),
-		vec3d_New(0.0f,0.0f,-17.0f),
-		vec3d_New(0.0f,0.0f,0.0f),
+		Vec3D_New(20.0f,0.0f,0.0f),
+		Vec3D_New(0.0f,0.0f,-17.0f),
+		Vec3D_New(0.0f,0.0f,0.0f),
 		1.0f,
 		1000.0f,
 		GREEN
 	)});
 	Vector_Push(&spheres,(Sphere[]){ Sphere_New(
-		vec3d_New(0.0f,0.0f,-30.0f),
-		vec3d_New(17.0f,0.0f,0.0f),
-		vec3d_New(0.0f,0.0f,0.0f),
+		Vec3D_New(0.0f,0.0f,-30.0f),
+		Vec3D_New(17.0f,0.0f,0.0f),
+		Vec3D_New(0.0f,0.0f,0.0f),
 		1.0f,
 		1000.0f,
 		YELLOW
 	)});
 	Vector_Push(&spheres,(Sphere[]){ Sphere_New(
-		vec3d_New(-40.0f,0.0f,0.0f),
-		vec3d_New(0.0f,0.0f,17.0f),
-		vec3d_New(0.0f,0.0f,0.0f),
+		Vec3D_New(-40.0f,0.0f,0.0f),
+		Vec3D_New(0.0f,0.0f,17.0f),
+		Vec3D_New(0.0f,0.0f,0.0f),
 		1.0f,
 		1000.0f,
 		LIGHT_BLUE
 	)});
 	Vector_Push(&spheres,(Sphere[]){ Sphere_New(
-		vec3d_New(0.0f,0.0f,50.0f),
-		vec3d_New(-17.0f,0.0f,0.0f),
-		vec3d_New(0.0f,0.0f,0.0f),
+		Vec3D_New(0.0f,0.0f,50.0f),
+		Vec3D_New(-17.0f,0.0f,0.0f),
+		Vec3D_New(0.0f,0.0f,0.0f),
 		1.0f,
 		1000.0f,
 		BLUE
@@ -182,7 +183,7 @@ void Setup(AlxWindow* w){
 void Update(AlxWindow* w){
 	if(Menu==1){
 		Camera_Focus(&cam,GetMouseBefore(),GetMouse(),GetScreenRect().d);
-		Camera_Update(&cam);
+		Camera_Update(&cam,w->ElapsedTime);
 		SetMouse((Vec2){ GetWidth() / 2,GetHeight() / 2 });
 	}
 	
@@ -193,13 +194,13 @@ void Update(AlxWindow* w){
 		Mode = Mode < 3 ? Mode+1 : 0;
 
 	if(Stroke(ALX_KEY_W).DOWN)
-		cam.p = vec3d_Add(cam.p,vec3d_Mul(cam.ld,Speed * w->ElapsedTime));
+		cam.p = Vec3D_Add(cam.p,Vec3D_Mul(cam.ld,Speed * w->ElapsedTime));
 	if(Stroke(ALX_KEY_S).DOWN)
-		cam.p = vec3d_Sub(cam.p,vec3d_Mul(cam.ld,Speed * w->ElapsedTime));
+		cam.p = Vec3D_Sub(cam.p,Vec3D_Mul(cam.ld,Speed * w->ElapsedTime));
 	if(Stroke(ALX_KEY_A).DOWN)
-		cam.p = vec3d_Add(cam.p,vec3d_Mul(cam.sd,Speed * w->ElapsedTime));
+		cam.p = Vec3D_Add(cam.p,Vec3D_Mul(cam.sd,Speed * w->ElapsedTime));
 	if(Stroke(ALX_KEY_D).DOWN)
-		cam.p = vec3d_Sub(cam.p,vec3d_Mul(cam.sd,Speed * w->ElapsedTime));
+		cam.p = Vec3D_Sub(cam.p,Vec3D_Mul(cam.sd,Speed * w->ElapsedTime));
 	if(Stroke(ALX_KEY_R).DOWN)
 		cam.p.y += Speed * w->ElapsedTime;
 	if(Stroke(ALX_KEY_F).DOWN)
@@ -222,7 +223,7 @@ void Update(AlxWindow* w){
 		Sphere_Update(s,w->ElapsedTime);
 	}
 
-	World3D_Set_Model(&world,Matrix_MakeWorld((vec3d){ 0.0f,0.0f,0.0f,1.0f },(vec3d){ 0.0f,0.0f,0.0f,1.0f }));
+	World3D_Set_Model(&world,Matrix_MakeWorld((Vec3D){ 0.0f,0.0f,0.0f,1.0f },(Vec3D){ 0.0f,0.0f,0.0f,1.0f }));
 	World3D_Set_View(&world,Matrix_MakePerspektive(cam.p,cam.up,cam.a));
 	World3D_Set_Proj(&world,Matrix_MakeProjection(cam.fov,(float)GetHeight() / (float)GetWidth(),0.1f,1000.0f));
 	
@@ -234,27 +235,27 @@ void Update(AlxWindow* w){
 
 	for(int i = -FIELDX;i<FIELDX;i++){
 		for(int j = -FIELDZ;j<FIELDZ;j++){
-			vec3d v00 = vec3d_New(i,	0.0f,j);
-			vec3d v10 = vec3d_New(i+1,	0.0f,j);
-			vec3d v01 = vec3d_New(i,	0.0f,j+1);
-			vec3d v11 = vec3d_New(i+1,	0.0f,j+1);
+			Vec3D v00 = Vec3D_New(i,	0.0f,j);
+			Vec3D v10 = Vec3D_New(i+1,	0.0f,j);
+			Vec3D v01 = Vec3D_New(i,	0.0f,j+1);
+			Vec3D v11 = Vec3D_New(i+1,	0.0f,j+1);
 
 			for(int k = 0;k<spheres.size;k++){
 				Sphere* s = (Sphere*)Vector_Get(&spheres,k);
 
-				v00.y -= FAKTOR * Sphere_Gravity(s,vec3d_New(v00.x,-1.0f,v00.z));
-				v10.y -= FAKTOR * Sphere_Gravity(s,vec3d_New(v10.x,-1.0f,v10.z));
-				v01.y -= FAKTOR * Sphere_Gravity(s,vec3d_New(v01.x,-1.0f,v01.z));
-				v11.y -= FAKTOR * Sphere_Gravity(s,vec3d_New(v11.x,-1.0f,v11.z));
+				v00.y -= FAKTOR * Sphere_Gravity(s,Vec3D_New(v00.x,-1.0f,v00.z));
+				v10.y -= FAKTOR * Sphere_Gravity(s,Vec3D_New(v10.x,-1.0f,v10.z));
+				v01.y -= FAKTOR * Sphere_Gravity(s,Vec3D_New(v01.x,-1.0f,v01.z));
+				v11.y -= FAKTOR * Sphere_Gravity(s,Vec3D_New(v11.x,-1.0f,v11.z));
 			}
 
-			triangle t1 = { .p = { v00,v11,v10 }, .c = WHITE };
-			triangle_CalcNorm(&t1);
-			triangle_ShadeNorm(&t1,vec3d_New(0.5f,0.6f,0.7f));
+			Tri3D t1 = { .p = { v00,v11,v10 }, .c = WHITE };
+			Tri3D_CalcNorm(&t1);
+			Tri3D_ShadeNorm(&t1,Vec3D_New(0.5f,0.6f,0.7f));
 
-			triangle t2 = { .p = { v00,v01,v11 }, .c = WHITE };
-			triangle_CalcNorm(&t2);
-			triangle_ShadeNorm(&t2,vec3d_New(0.5f,0.6f,0.7f));
+			Tri3D t2 = { .p = { v00,v01,v11 }, .c = WHITE };
+			Tri3D_CalcNorm(&t2);
+			Tri3D_ShadeNorm(&t2,Vec3D_New(0.5f,0.6f,0.7f));
 
 			Vector_Push(&world.trisIn,&t1);
 			Vector_Push(&world.trisIn,&t2);
@@ -266,7 +267,7 @@ void Update(AlxWindow* w){
 	World3D_update(&world,cam.p,(Vec2){ GetWidth(),GetHeight() });
 
 	for(int i = 0;i<world.trisOut.size;i++){
-		triangle* t = (triangle*)Vector_Get(&world.trisOut,i);
+		Tri3D* t = (Tri3D*)Vector_Get(&world.trisOut,i);
 
 		if(Mode==0)
 			RenderTriangle(((Vec2){ t->p[0].x, t->p[0].y }),((Vec2){ t->p[1].x, t->p[1].y }),((Vec2){ t->p[2].x, t->p[2].y }),t->c);
