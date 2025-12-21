@@ -125,8 +125,6 @@ void Setup(AlxWindow* w){
 	cam = Camera_Make(
 		(Vec3D){ 0.0f,5.0f,-25.0f,1.0f },
 		(Vec3D){ 0.0f,0.0f,0.0f,1.0f },
-		(Vec3D){ 0.0f,0.0f,0.0f,1.0f },
-		(Vec3D){ 0.0f,0.0f,0.0f,1.0f },
 		90.0f
 	);
 
@@ -183,7 +181,7 @@ void Setup(AlxWindow* w){
 void Update(AlxWindow* w){
 	if(Menu==1){
 		Camera_Focus(&cam,GetMouseBefore(),GetMouse(),GetScreenRect().d);
-		Camera_Update(&cam,w->ElapsedTime);
+		Camera_Update(&cam);
 		SetMouse((Vec2){ GetWidth() / 2,GetHeight() / 2 });
 	}
 	
